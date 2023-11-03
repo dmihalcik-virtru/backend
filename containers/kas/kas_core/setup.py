@@ -26,7 +26,7 @@ setup(
         "Flask",
         "PyJWT",
         "bitstruct",
-        "connexion>=2,<3",
+        "connexion[flask]>=2,<3",
         "cryptography",
         "grpcio",
         "gunicorn",
