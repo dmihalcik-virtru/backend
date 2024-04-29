@@ -1,4 +1,3 @@
-import os
 import connexion
 import json
 import logging
@@ -8,6 +7,7 @@ from base64 import urlsafe_b64encode
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from jwt import PyJWK, PyJWS, PyJWT
+from urllib.parse import urljoin
 
 from .authorized import authorized_v2, issuer_verifier_key, looks_like_jwt
 from .errors import UnauthorizedError
@@ -117,16 +117,19 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
         ath = decoded["ath"]
         htm = decoded["htm"]
         htu = decoded["htu"]
-        m = request.method
-        u = request.url
     except Exception as e:
         raise UnauthorizedError("Invalid JWT") from e
 
-    # workaround for starlette request.url not including ingress path
-    htu_no_ingress = htu.replace("/api/kas", "")
-    if m != htm or u != htu_no_ingress:
+    m = request.method
+    u = urljoin(request.origin, request.path)
+    if m != htm or u != htu:
         logger.warning(
-            "Invalid DPoP htm:[%s] htu:[%s] != m:[%s] u[%s]", htm, htu_no_ingress, m, u
+            "Invalid DPoP htm:[%s] htu:[%s] != m:[%s] u[%s], request.url:[%s]",
+            htm,
+            htu,
+            m,
+            u,
+            request.url,
         )
         raise UnauthorizedError("Invalid DPoP")
     access_token_hash = jws_sha(id_jwt)
