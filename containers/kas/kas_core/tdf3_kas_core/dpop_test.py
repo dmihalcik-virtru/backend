@@ -82,6 +82,8 @@ def test_jwk_thumbprint():
 class MockRequest:
     headers: dict[str, str] = field(default_factory=lambda: {})
     method: str = "GET"
+    origin: str = "http://localhost"
+    path: str = "/"
     url: str = "http://localhost/"
 
 
